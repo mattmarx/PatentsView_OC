@@ -1,15 +1,38 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
 import pandas as pd
 import os
 import time
 import warnings
 warnings.filterwarnings('ignore')
 
+
+"""
+Author: Joshua Chu
+Date: April 23, 2023
+
+Description: this script constructs the assignee data set that comprises assignee information
+that will be used to account for date descripencies between the minimum patent date from the
+input file and the incorporation date from OpenCorporates. Specifically, this data set will
+be applied to records where the incorporation date is 'younger' than the minimum patent date
+provided in the input file.
+
+The cases where the patent is assigned to an assignee that is different from the date indicated
+in the input file can be resolved using this assignment file (output file from this script). A
+specific example is Mod Golf Technologies LLC. The minimum patent date in the input file is
+01/05/2017 and the incorporation date indicated in OpenCorporates is 01/28/2021. The scoring
+algorithm will score this poorly. However, looking at the patent number that corresponds to
+the 01/05/2017 date (US-11027175-B2), we can see the patent was not assigned to Mod Golf
+Technologies LLC until 01/19/2021, which is more reasonable than the 01/05/2017. This indicates
+the filing application date is incorrect and the later date is the appropriate date to use
+in this case. Therefore, to resolve these issues, the assignee data set was constructed and
+integrated into the PatentsView-OpenCorporates pipeline.
+
+"""
+
+### the following sections import the required documents to create the assignment data
+### set that will contain the assignee name, assignor name, record_date, conveyance type
+### title for the patent, application file number, application file date, patent number,
+### and patent number date. Lastly, the rf_id is found in all source data sets and was
+### utilized to join the data sets.
 t0=time.time()
 
 srcFiles="../sourceFiles/"
@@ -23,14 +46,6 @@ print("Total time is %4f" % (total/60), "mins\n")
 display(df.info(null_counts=True),df.head())
 
 
-# In[ ]:
-
-
-
-
-
-# In[2]:
-
 
 t0=time.time()
 
@@ -43,15 +58,7 @@ print("Total time is %4f" % (total/60), "mins\n")
 display(df1.info(null_counts=True),df1.head())
 
 
-# In[ ]:
-
-
-
-
-
-# In[3]:
-
-
+### using the rf_id, the assignee.csv and assignor.csv files were merged
 t0=time.time()
 
 merge1=df.merge(df1,on=['rf_id'],how='inner')
@@ -62,14 +69,6 @@ print("Total time is %4f" % (total/60), "mins\n")
 
 display(merge1.info(null_counts=True),merge1.head())
 
-
-# In[ ]:
-
-
-
-
-
-# In[4]:
 
 
 t0=time.time()
@@ -83,15 +82,8 @@ print("Total time is %4f" % (total/60), "mins\n")
 display(df2.info(null_counts=True),df2.head())
 
 
-# In[ ]:
-
-
-
-
-
-# In[5]:
-
-
+### using the rf_id, the assignment.csv file was merged against the assignee-assignor
+### merged set
 t0=time.time()
 
 merge2=merge1.merge(df2,on=['rf_id'],how='inner')
@@ -102,14 +94,6 @@ print("Total time is %4f" % (total/60), "mins\n")
 
 display(merge2.info(null_counts=True),merge2.head())
 
-
-# In[ ]:
-
-
-
-
-
-# In[6]:
 
 
 t0=time.time()
@@ -123,15 +107,8 @@ print("Total time is %4f" % (total/60), "mins\n")
 display(df3.info(null_counts=True),df3.head())
 
 
-# In[ ]:
-
-
-
-
-
-# In[7]:
-
-
+### using the rf_id, the assignment_conveyance.csv file was merged against the
+### assignee-assignor-assignement merged set
 t0=time.time()
 
 merge3=merge2.merge(df3,on=['rf_id'],how='inner')
@@ -142,14 +119,6 @@ print("Total time is %4f" % (total/60), "mins\n")
 
 display(merge3.info(null_counts=True),merge3.head())
 
-
-# In[ ]:
-
-
-
-
-
-# In[8]:
 
 
 t0=time.time()
@@ -164,14 +133,8 @@ print("Total time is %4f" % (total/60), "mins\n")
 display(df4.info(null_counts=True),df4.head())
 
 
-# In[ ]:
-
-
-
-
-
-# In[9]:
-
+### using the rf_id, the documentid.csv file was merged against the assignee-assignor-
+### assignement-assignment_convey merged set
 
 from datetime import timedelta
 
@@ -189,15 +152,8 @@ print("Total time is %4f" % (total/60), "mins\n")
 display(merge4.info(null_counts=True),merge4.head())
 
 
-# In[ ]:
-
-
-
-
-
-# In[10]:
-
-
+### using the merge4 data set the fields containing dates are converted to a different
+### data type for sorting purposes
 t0=time.time()
 
 merge4['record_date'] = pd.to_datetime(merge4['record_date'],errors='coerce')
@@ -214,30 +170,14 @@ print("There are",merge4.rf_id.nunique(),"unique rf_ids\n")
 display(merge4.info(null_counts=True),merge4.head())
 
 
-# In[ ]:
-
-
-
-
-
-# In[11]:
-
-
-merge4[merge4.grant_num.str.contains("6568838",na=False,case=False,regex=True)]
-
-
-# In[ ]:
-
-
-
-
-
-# In[12]:
-
-
+### after sorting the data set, the convey_type field was utilized to filter for specific
+### records containing the 'types' shown below. Following this step, any record that contains
+### NAs for the grant_num and grant_num_date were dropped from the final data set. Finally,
+### any rf_ids containing the same patent number and date were considered duplicates and
+### dropped from the final data set.
 t0=time.time()
 
-filterMerge4=merge4.loc[(merge4.convey_type=='assignment') | (merge4.convey_type=='correct') | 
+filterMerge4=merge4.loc[(merge4.convey_type=='assignment') | (merge4.convey_type=='correct') |
                         (merge4.convey_type=='namechg') | (merge4.convey_type=='merger')].copy()
 filterMerge4.dropna(subset=['grant_num','grant_num_date'],inplace=True)
 
@@ -251,32 +191,5 @@ print("There are",filterMerge5.rf_id.nunique(),"unique rf_ids\n")
 display(filterMerge5.info(null_counts=True),filterMerge5.head())
 
 
-# In[ ]:
-
-
-
-
-
-# In[13]:
-
-
-filterMerge5[filterMerge5.grant_num.str.contains("6568838",na=False,case=False,regex=True)]
-
-
-# In[ ]:
-
-
-
-
-
-# In[12]:
-
-
-# filterMerge5.to_csv("../csvResults/reassignment.csv",index=False)
-
-
-# In[ ]:
-
-
-
-
+### save the file as reassignment.csv
+filterMerge5.to_csv("../csvResults/reassignment.csv",index=False)
