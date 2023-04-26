@@ -72,18 +72,6 @@ display(merge1.info(null_counts=True),merge1.head())
 # In[4]:
 
 
-merge1.loc[merge1['rf_id']==12800340]
-
-
-# In[ ]:
-
-
-
-
-
-# In[5]:
-
-
 t0=time.time()
 
 df2=pd.read_csv(os.path.join(srcFiles,"assignment.csv"),usecols=['rf_id','record_dt'])
@@ -101,7 +89,7 @@ display(df2.info(null_counts=True),df2.head())
 
 
 
-# In[6]:
+# In[5]:
 
 
 t0=time.time()
@@ -121,19 +109,7 @@ display(merge2.info(null_counts=True),merge2.head())
 
 
 
-# In[7]:
-
-
-merge2.loc[merge2['rf_id']==12800340]
-
-
-# In[ ]:
-
-
-
-
-
-# In[8]:
+# In[6]:
 
 
 t0=time.time()
@@ -153,7 +129,7 @@ display(df3.info(null_counts=True),df3.head())
 
 
 
-# In[9]:
+# In[7]:
 
 
 t0=time.time()
@@ -173,19 +149,7 @@ display(merge3.info(null_counts=True),merge3.head())
 
 
 
-# In[10]:
-
-
-merge3.loc[merge3['rf_id']==12800340]
-
-
-# In[ ]:
-
-
-
-
-
-# In[11]:
+# In[8]:
 
 
 t0=time.time()
@@ -206,7 +170,7 @@ display(df4.info(null_counts=True),df4.head())
 
 
 
-# In[12]:
+# In[9]:
 
 
 from datetime import timedelta
@@ -231,7 +195,7 @@ display(merge4.info(null_counts=True),merge4.head())
 
 
 
-# In[13]:
+# In[10]:
 
 
 t0=time.time()
@@ -256,16 +220,28 @@ display(merge4.info(null_counts=True),merge4.head())
 
 
 
-# In[14]:
+# In[11]:
+
+
+merge4[merge4.grant_num.str.contains("6568838",na=False,case=False,regex=True)]
+
+
+# In[ ]:
+
+
+
+
+
+# In[12]:
 
 
 t0=time.time()
 
 filterMerge4=merge4.loc[(merge4.convey_type=='assignment') | (merge4.convey_type=='correct') | 
                         (merge4.convey_type=='namechg') | (merge4.convey_type=='merger')].copy()
-filterMerge4.sort_values(by=['rf_id','record_date'],inplace=True)
+filterMerge4.dropna(subset=['grant_num','grant_num_date'],inplace=True)
 
-filterMerge5=filterMerge4.drop_duplicates(subset=['rf_id'],keep='first').copy()
+filterMerge5=filterMerge4.drop_duplicates(subset=['rf_id','grant_num','grant_num_date'],keep='first').copy()
 
 t1=time.time()
 total=t1-t0
@@ -281,16 +257,10 @@ display(filterMerge5.info(null_counts=True),filterMerge5.head())
 
 
 
-# In[16]:
+# In[13]:
 
 
-filterMerge5[filterMerge5.grant_num.str.contains('6327609',case=False,na=False,regex=True)]
-
-
-# In[ ]:
-
-
-
+filterMerge5[filterMerge5.grant_num.str.contains("6568838",na=False,case=False,regex=True)]
 
 
 # In[ ]:
@@ -299,8 +269,14 @@ filterMerge5[filterMerge5.grant_num.str.contains('6327609',case=False,na=False,r
 
 
 
-# In[23]:
+# In[12]:
 
 
 # filterMerge5.to_csv("../csvResults/reassignment.csv",index=False)
+
+
+# In[ ]:
+
+
+
 
