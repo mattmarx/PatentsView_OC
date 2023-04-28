@@ -26,7 +26,14 @@ the filing application date is incorrect and the later date is the appropriate d
 in this case. Therefore, to resolve these issues, the assignee data set was constructed and
 integrated into the PatentsView-OpenCorporates pipeline.
 
+The output file from this script is used as input for the following python script:
+
+  Prepare Patentview Data for Mike - Groupby Assignee Only.py
+
+No other script is built to use this file so ensure you execute the script above next.
+
 """
+
 
 ### the following sections import the required documents to create the assignment data
 ### set that will contain the assignee name, assignor name, record_date, conveyance type
@@ -43,8 +50,8 @@ t1=time.time()
 total=t1-t0
 print("Total time is %4f" % (total/60), "mins\n")
 
-display(df.info(null_counts=True),df.head())
-
+print(df.info(null_counts=True),flush=True)
+print(df.head(),flush=True)
 
 
 t0=time.time()
@@ -55,7 +62,8 @@ t1=time.time()
 total=t1-t0
 print("Total time is %4f" % (total/60), "mins\n")
 
-display(df1.info(null_counts=True),df1.head())
+print(df1.info(null_counts=True),flush=True)
+print(df1.head())
 
 
 ### using the rf_id, the assignee.csv and assignor.csv files were merged
@@ -67,8 +75,8 @@ t1=time.time()
 total=t1-t0
 print("Total time is %4f" % (total/60), "mins\n")
 
-display(merge1.info(null_counts=True),merge1.head())
-
+print(merge1.info(null_counts=True),flush=True)
+print(merge1.head())
 
 
 t0=time.time()
@@ -79,7 +87,8 @@ t1=time.time()
 total=t1-t0
 print("Total time is %4f" % (total/60), "mins\n")
 
-display(df2.info(null_counts=True),df2.head())
+print(df2.info(null_counts=True),flush=True)
+print(df2.head())
 
 
 ### using the rf_id, the assignment.csv file was merged against the assignee-assignor
@@ -92,8 +101,8 @@ t1=time.time()
 total=t1-t0
 print("Total time is %4f" % (total/60), "mins\n")
 
-display(merge2.info(null_counts=True),merge2.head())
-
+print(merge2.info(null_counts=True),flush=True)
+print(merge2.head())
 
 
 t0=time.time()
@@ -104,7 +113,8 @@ t1=time.time()
 total=t1-t0
 print("Total time is %4f" % (total/60), "mins\n")
 
-display(df3.info(null_counts=True),df3.head())
+print(df3.info(null_counts=True),flush=True)
+print(df3.head())
 
 
 ### using the rf_id, the assignment_conveyance.csv file was merged against the
@@ -117,20 +127,20 @@ t1=time.time()
 total=t1-t0
 print("Total time is %4f" % (total/60), "mins\n")
 
-display(merge3.info(null_counts=True),merge3.head())
-
+print(merge3.info(null_counts=True),flush=True)
+print(merge3.head())
 
 
 t0=time.time()
 
 df4=pd.read_csv(os.path.join(srcFiles,"documentid.csv"),usecols=['rf_id','title','appno_doc_num','appno_date',
                                                                  'grant_doc_num','grant_date'])
-
 t1=time.time()
 total=t1-t0
 print("Total time is %4f" % (total/60), "mins\n")
 
-display(df4.info(null_counts=True),df4.head())
+print(df4.info(null_counts=True),flush=True)
+print(df4.head(),flush=True)
 
 
 ### using the rf_id, the documentid.csv file was merged against the assignee-assignor-
@@ -149,7 +159,8 @@ t1=time.time()
 total=t1-t0
 print("Total time is %4f" % (total/60), "mins\n")
 
-display(merge4.info(null_counts=True),merge4.head())
+print(merge4.info(null_counts=True),flush=True)
+print(merge4.head())
 
 
 ### using the merge4 data set the fields containing dates are converted to a different
@@ -167,7 +178,8 @@ total=t1-t0
 print("Total time is %4f" % (total/60), "mins")
 print("There are",merge4.rf_id.nunique(),"unique rf_ids\n")
 
-display(merge4.info(null_counts=True),merge4.head())
+print(merge4.info(null_counts=True),flush=True)
+print(merge4.head())
 
 
 ### after sorting the data set, the convey_type field was utilized to filter for specific
@@ -188,8 +200,10 @@ total=t1-t0
 print("Total time is %4f" % (total/60), "mins")
 print("There are",filterMerge5.rf_id.nunique(),"unique rf_ids\n")
 
-display(filterMerge5.info(null_counts=True),filterMerge5.head())
+print(filterMerge5.info(null_counts=True),flush=True)
+print(filterMerge5.head())
 
 
 ### save the file as reassignment.csv
 filterMerge5.to_csv("../csvResults/reassignment.csv",index=False)
+os.chmod("../csvResults/reassignment.csv",0o777)
